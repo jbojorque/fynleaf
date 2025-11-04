@@ -1,7 +1,7 @@
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Currency } from '../utils/currency'; // We'll copy this file over
+import { Currency } from '../utils/currency';
 
 // --- From SaveApp ---
 export interface Account {
@@ -9,6 +9,19 @@ export interface Account {
   name: string;
   balance: number;
 }
+
+// --- THIS IS THE MISSING TYPE ---
+// Data for the Pie Chart
+export interface PieSliceData { 
+  value: number; 
+  color: string; 
+  name: string; 
+  percentage: string | number; 
+  originalBalance?: number; 
+  focused?: boolean; 
+  labelText?: string; 
+}
+// ---------------------------------
 
 // --- From ExpenseTracker ---
 export type Expense = {
@@ -31,8 +44,7 @@ export type HistoryItem = {
 export type RootStackParamList = {
   Main: undefined; 
   AddExpenseModal: { expenseToEdit?: Expense };
-  // We'll also need a modal for adding/editing accounts
-  AccountModal: { accountToEdit?: Account }; 
+  AccountModal: { accountId?: string }; // <-- Use accountId to find account
 };
 
 export type BottomTabParamList = {
@@ -65,9 +77,7 @@ export type AppContextType = {
   history: HistoryItem[];
   
   // --- **THE CORE INTEGRATION** ---
-  // This function will now subtract from an account
   addExpense: (data: Omit<Expense, 'id'|'date'|'accountId'>, accountId: string) => void;
-  // This function will add money back to an account
   deleteExpense: (expenseId: string) => void;
   resetExpenses: () => void;
   
@@ -78,3 +88,4 @@ export type AppContextType = {
   formatCurrency: (amount: number, showSymbol?: boolean, useDecimals?: boolean) => string;
   getExpensesByCategory: () => { [key: string]: number };
 };
+

@@ -1,24 +1,25 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import React from 'react';
+import { AppProvider } from '../contexts/AppContext';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    // The AppProvider wraps everything
+    <AppProvider>
       <Stack>
+        {/* This loads the (tabs) layout */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        
+        {/* These are your modal screens */}
+        <Stack.Screen 
+          name="addExpenseModal" 
+          options={{ presentation: 'modal', title: 'Add Expense' }} 
+        />
+        <Stack.Screen 
+          name="addAccountModal" 
+          options={{ presentation: 'modal', title: 'Add Account' }} 
+        />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    </AppProvider>
   );
 }
