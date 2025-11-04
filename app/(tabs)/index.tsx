@@ -1,27 +1,20 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router'; // Use Link for navigation
+import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList, Pressable, SafeAreaView, StatusBar,
-  StyleSheet, Text, View
+  ActivityIndicator, FlatList, Pressable, SafeAreaView, StatusBar,
+  StyleSheet, Text, View,
 } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
 import { useAppContext } from '../../contexts/AppContext';
 import { PieSliceData } from '../../navigation/types';
 
-// (Constants - same as your file)
 const CARD_COLORS = [ '#007AFF', '#5856D6', '#34C759', '#FF9500', '#FF3B30', '#00C7BE', '#3A3A3C', '#E91E63', '#9C27B0', '#4CAF50', '#FFEB3B', '#FF5722', ];
 const getIconForAccount = (name: string, size: number, color: string) => { const lowerName = name.toLowerCase(); if (lowerName.includes('bank') || lowerName.includes('bdo') || lowerName.includes('bpi')) { return <FontAwesome name="bank" size={size} color={color} />; } if (lowerName.includes('cash') && !lowerName.includes('gcash')) { return <FontAwesome name="money" size={size} color={color} />; } if (lowerName.includes('card')) { return <FontAwesome name="credit-card-alt" size={size} color={color} />; } if (lowerName.includes('gcash') || lowerName.includes('maya')) { return <Ionicons name="phone-portrait-outline" size={size} color={color} />; } return <MaterialCommunityIcons name="wallet-outline" size={size} color={color} />; };
 
 export default function DashboardScreen() {
-    const { 
-      isLoading, 
-      accounts, 
-      formatCurrency,
-    } = useAppContext();
-
+    const { isLoading, accounts, formatCurrency } = useAppContext();
     const [focusedIndex, setFocusedIndex] = useState(-1);
 
     const positiveBalanceTotal = accounts.filter(acc => acc.balance > 0).reduce((sum, account) => sum + account.balance, 0);
@@ -53,7 +46,7 @@ export default function DashboardScreen() {
                                 focusOnPress
                                 onPress={(item: any, index: number) => { setFocusedIndex(index === focusedIndex ? -1 : index); }}
                             />
-                             {/* (Your chart focus/legend components here) */}
+                             {/* You can add your chart focus/legend components here if you wish */}
                         </View>
                     ) : (
                         <Text style={styles.emptyChartText}>Add an account to see a chart</Text>
@@ -69,7 +62,6 @@ export default function DashboardScreen() {
                 renderItem={({ item, index }) => { 
                     const cardColor = CARD_COLORS[index % CARD_COLORS.length];
                     return ( 
-                      // Use <Link> to navigate to the modal
                       <Link href={{ pathname: "/addAccountModal", params: { accountId: item.id } }} asChild>
                         <Pressable style={[styles.card]}>
                             <View style={[styles.cardInner, { backgroundColor: cardColor }]}>
@@ -93,8 +85,7 @@ export default function DashboardScreen() {
                  }
             />
 
-            {/* Add Button - use <Link> */}
-            <Link href="/addAccountModal" asChild>
+            <Link href={{ pathname: "/addAccountModal", params: { accountId: undefined } }} asChild>
               <Pressable style={styles.fab}>
                   <Ionicons name="add" size={30} color="white" />
               </Pressable>
@@ -104,14 +95,14 @@ export default function DashboardScreen() {
     );
 }
 
-// --- STYLES (Your styles from SaveApp) ---
+// --- STYLES ---
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F7F8FC' },
     center: { justifyContent: 'center', alignItems: 'center', flex: 1 },
     loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
     headerBackgroundGradient: { borderBottomLeftRadius: 30, borderBottomRightRadius: 30, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3, marginBottom: 8 },
-    header: { paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 24, paddingBottom: 12, paddingHorizontal: 24, backgroundColor: 'transparent' },
-    headerTitleRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    header: { paddingBottom: 12, paddingHorizontal: 24, backgroundColor: 'transparent' },
+    headerTitleRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingTop: 10 },
     headerTitle: { fontSize: 18, color: '#8A9BBE', fontWeight: '600' },
     totalAmount: { fontSize: 42, color: '#1E2A3C', fontWeight: 'bold', textAlign: 'center', marginTop: 8 },
     chartContainer: { alignItems: 'center', marginTop: 20, marginBottom: 10, position: 'relative', minHeight: 250, width: '100%', justifyContent: 'center' },

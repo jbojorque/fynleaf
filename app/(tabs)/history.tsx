@@ -1,6 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useAppContext } from '../../contexts/AppContext';
 import { HistoryItem } from '../../navigation/types';
@@ -40,30 +40,39 @@ export default function HistoryScreen() {
   );
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      {history.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No history yet.</Text>
-          <Text style={styles.emptySubText}>
-            When you "Reset Current Period" from the Settings tab,
-            your expense summary will appear here.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={history}
-          renderItem={renderHistoryItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-      )}
-    </Animated.View>
+    <SafeAreaView style={styles.container}>
+      <Animated.View style={animatedStyle}>
+        <Text style={styles.header}>History</Text>
+        {history.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No history yet.</Text>
+            <Text style={styles.emptySubText}>
+              Reset a period from Settings to see it here.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={history}
+            renderItem={renderHistoryItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+        )}
+      </Animated.View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f4f4' },
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
+  header: {
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    marginBottom: 10,
+    marginTop: 10,
+    paddingHorizontal: 20,
+  },
+  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30, marginTop: -50 },
   emptyText: { fontSize: 20, fontWeight: 'bold', color: '#333', textAlign: 'center' },
   emptySubText: { fontSize: 16, color: '#777', textAlign: 'center', marginTop: 10 },
   itemContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee' },

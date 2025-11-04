@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useAppContext } from '../../contexts/AppContext';
 import { Expense } from '../../navigation/types';
@@ -70,29 +70,38 @@ export default function ExpenseListScreen() {
   }
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      {expenses.length === 0 ? (
-         <Text style={styles.emptyText}>No expenses yet. Add one!</Text>
-      ) : (
-        <FlatList
-          data={expenses}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={{ paddingBottom: 100 }} // More padding
-        />
-      )}
-      {/* Add Expense Button */}
-      <Link href="/addExpenseModal" asChild>
-        <Pressable style={styles.fab}>
-            <Ionicons name="add" size={30} color="white" />
-        </Pressable>
-      </Link>
-    </Animated.View>
+    <SafeAreaView style={styles.container}>
+      <Animated.View style={animatedStyle}>
+        <Text style={styles.header}>My Expenses</Text>
+        {expenses.length === 0 ? (
+          <Text style={styles.emptyText}>No expenses yet. Add one!</Text>
+        ) : (
+          <FlatList
+            data={expenses}
+            renderItem={renderItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={{ paddingBottom: 100 }}
+          />
+        )}
+        <Link href="/addExpenseModal" asChild>
+          <Pressable style={styles.fab}>
+              <Ionicons name="add" size={30} color="white" />
+          </Pressable>
+        </Link>
+      </Animated.View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  header: {
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    marginBottom: 10,
+    marginTop: 10,
+    paddingHorizontal: 20,
+  },
   itemContainer: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
   itemInfo: { flex: 1 },
   itemCategory: { fontSize: 16, fontWeight: 'bold' },

@@ -1,12 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Account, AppContextType, Expense, HistoryItem } from '../navigation/types';
-import { CURRENCIES, Currency } from '../utils/currency'; // We'll copy this file over
+import { Currency } from '../utils/currency';
 
-// We'll store EVERYTHING under one key
-const APP_DATA_KEY = '@FinanceAppStore';
+const APP_DATA_KEY = '@FinanceAppStore_v1';
 
-// Define the shape of our stored data
 interface AppData {
   accounts: Account[];
   expenses: Expense[];
@@ -21,9 +19,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
+  const [currency, setCurrency] = useState<Currency>('PHP'); // Default to PHP
 
-  // --- 1. Load All Data ---
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -33,7 +30,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setAccounts(data.accounts || []);
           setExpenses(data.expenses || []);
           setHistory(data.history || []);
-          setCurrency(data.currency || CURRENCIES[0]);
+          setCurrency(data.currency || 'PHP');
         }
       } catch (e) { console.error('Failed to load data.', e); }
       finally { setIsLoading(false); }
@@ -41,7 +38,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     loadData();
   }, []);
 
-  // --- 2. Save All Data ---
   useEffect(() => {
     if (isLoading) return;
     const saveData = async () => {
@@ -54,7 +50,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     saveData();
   }, [accounts, expenses, history, currency, isLoading]);
 
-  // --- 3. Account Functions (from SaveApp) ---
   const addAccount = (account: Omit<Account, 'id'>) => {
     const newAccount: Account = { ...account, id: Date.now().toString() };
     setAccounts(prev => [...prev, newAccount]);
@@ -70,9 +65,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setAccounts(prev => prev.filter(acc => acc.id !== id));
   };
 
-  // --- 4. Integrated Expense Functions ---
-  
-  // ** THIS IS THE CORE INTEGRATION **
   const addExpense = (data: Omit<Expense, 'id' | 'date' | 'accountId'>, accountId: string) => {
     const newExpense: Expense = {
       ...data,
@@ -81,8 +73,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       accountId: accountId,
     };
     setExpenses(prev => [newExpense, ...prev]);
-
-    // ** SUBTRACT FROM THE ACCOUNT **
     setAccounts(prev => 
       prev.map(acc => 
         acc.id === accountId ? { ...acc, balance: acc.balance - data.amount } : acc
@@ -93,8 +83,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const deleteExpense = (id: string) => {
     const expenseToDelete = expenses.find(exp => exp.id === id);
     if (!expenseToDelete) return;
-
-    // ** ADD THE MONEY BACK TO THE ACCOUNT **
     setAccounts(prev =>
       prev.map(acc =>
         acc.id === expenseToDelete.accountId 
@@ -126,17 +114,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }, {} as { [key: string]: number });
   };
   
-  // --- 5. Helper Function ---
   const formatCurrency = (amount: number, showSymbol = true, useDecimals = true) => {
-    // Use the currency from state!
-    const code = currency === 'PHP' ? 'PHP' : currency; 
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: code,
-      minimumFractionDigits: useDecimals ? 2 : 0, 
-      maximumFractionDigits: useDecimals ? 2 : 0 
-    }).format(amount);
+    const code = currency || 'PHP';
+    // Use 'en-PH' for PHP formatting, or 'en-US' as a fallback
+    const locale = (code === 'PHP') ? 'en-PH' : 'en-US';
+    
+    try {
+      const formatter = new Intl.NumberFormat(locale, { 
+        style: 'currency', 
+        currency: code,
+        minimumFractionDigits: useDecimals ? 2 : 0, 
+        maximumFractionDigits: useDecimals ? 2 : 0 
+      });
+
+      if (showSymbol) {
+        return formatter.format(amount);
+      } else {
+        // Fallback for non-symbol currency formatting
+        return new Intl.NumberFormat(locale, {
+          style: 'decimal',
+          minimumFractionDigits: useDecimals ? 2 : 0,
+          maximumFractionDigits: useDecimals ? 2 : 0
+        }).format(amount);
+      }
+    } catch (e) {
+      // Fallback if currency code is not supported
+      return `${code} ${amount.toFixed(2)}`;
+    }
   };
+
 
   return (
     <AppContext.Provider
@@ -162,7 +168,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// --- 6. New Custom Hook ---
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {

@@ -1,153 +1,198 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import {
-    Alert, KeyboardAvoidingView, Platform, Pressable,
-    StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, Button, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../contexts/AppContext';
+import { getCurrencySymbol } from '../utils/currency';
 
-const ACCOUNT_TYPES = [ 'BDO Unibank', 'BPI', 'Metrobank', 'GCash', 'Maya', 'CASH', 'CIMB', 'Maribank', 'UNO', 'GoTyme', 'Land Bank', 'Security Bank', 'RCBC', 'PNB', 'China Bank', 'UnionBank', 'EastWest Bank', 'CREDIT CARD', 'Asia United Bank', 'Paypal', 'Wise', 'Other', ];
+const CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Other'];
 
-export default function AddAccountModal() {
-    const { addAccount, editAccount, deleteAccount, accounts } = useAppContext();
-    const router = useRouter();
+export default function AddExpenseModal() {
+  const { addExpense, currency, formatCurrency, accounts } = useAppContext();
+  const params = useLocalSearchParams();
+  const expenseToEdit = undefined; // Editing is not supported in this example
+  const isEditing = !!expenseToEdit;
+
+  const payableAccounts = accounts.filter(acc => acc.balance > 0);
+
+  const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState('');
+  const [note, setNote] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(
+    payableAccounts.length > 0 ? payableAccounts[0].id : undefined
+  );
+
+  const handleSubmit = () => {
+    const parsedAmount = parseFloat(amount);
     
-    // Get the accountId from the navigation params
-    const { accountId } = useLocalSearchParams();
-    const isEditMode = !!accountId;
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      Alert.alert('Invalid Input', 'Please enter a valid amount.');
+      return;
+    }
+    if (!category) { 
+      Alert.alert('Invalid Input', 'Please select a category.');
+      return;
+    }
+    if (!selectedAccountId) {
+      Alert.alert('Invalid Input', 'You must have an account with a positive balance to pay from.');
+      return;
+    }
+
+    const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+    if (selectedAccount && selectedAccount.balance < parsedAmount) {
+      Alert.alert('Insufficient Funds', `You only have ${formatCurrency(selectedAccount.balance)} in this account.`);
+      return;
+    }
+
+    const expenseData = { amount: parsedAmount, category, note };
+
+    if (isEditing) {
+      // Logic for editing
+    } else {
+      addExpense(expenseData, selectedAccountId);
+    }
     
-    const [currentAccount, setCurrentAccount] = useState(() => {
-      return accounts.find(acc => acc.id === accountId);
-    });
-    
-    const [accountName, setAccountName] = useState(ACCOUNT_TYPES[0]);
-    const [customName, setCustomName] = useState('');
-    const [balanceInput, setBalanceInput] = useState('');
+    router.back();
+  };
 
-    useEffect(() => {
-      if (isEditMode && currentAccount) {
-        if (ACCOUNT_TYPES.includes(currentAccount.name)) {
-          setAccountName(currentAccount.name);
-          setCustomName('');
-        } else {
-          setAccountName('Other');
-          setCustomName(currentAccount.name);
-        }
-        setBalanceInput(currentAccount.balance.toString());
-      }
-    }, [isEditMode, currentAccount]);
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <Text style={styles.label}>Amount ({getCurrencySymbol(currency)})</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="0.00"
+          keyboardType="numeric"
+          value={amount}
+          onChangeText={setAmount}
+        />
 
-    const handleSubmit = () => {
-      const balance = parseFloat(balanceInput);
-      const name = accountName === 'Other' ? customName.trim() : accountName;
-      if (!name) { Alert.alert('Invalid Input', 'Please enter an account name.'); return; }
-      if (isNaN(balance)) { Alert.alert('Invalid Input', 'Please enter a valid balance amount.'); return; }
-
-      if (isEditMode && currentAccount) {
-        editAccount({ ...currentAccount, name: name, balance: balance });
-      } else {
-        addAccount({ name: name, balance: balance });
-      }
-      router.back();
-    };
-
-    const handleDeleteAccount = () => {
-      if (!currentAccount) return;
-      Alert.alert("Delete Account", `Are you sure?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Delete", style: "destructive", onPress: () => { 
-              deleteAccount(currentAccount.id);
-              router.back();
-            }, 
-          },
-        ] 
-      );
-    };
-
-    return (
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
-        style={styles.modalBackdrop}
-      >
-        <Pressable style={StyleSheet.absoluteFill} onPress={() => router.back()} />
-        <View style={styles.modalView} >
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%'}}>
-            <Text style={styles.modalTitle}>{isEditMode ? 'Update Account' : 'Add New Account'}</Text>
-            
-            <Text style={styles.inputLabel}>Account Name</Text>
-            <View style={styles.pickerContainer}>
-              <Picker 
-                selectedValue={accountName} 
-                onValueChange={(itemValue) => setAccountName(itemValue)} 
-                style={styles.picker} 
-                itemStyle={styles.pickerItem}
-              >
-                {ACCOUNT_TYPES.map((type) => (<Picker.Item key={type} label={type} value={type} color="#000000"/>))}
-              </Picker>
-            </View>
-            
-            {accountName === 'Other' && (
-              <TextInput 
-                style={styles.input} 
-                placeholder="Enter custom name" 
-                placeholderTextColor="#999" 
-                value={customName} 
-                onChangeText={setCustomName}
-              />
+        <Text style={styles.label}>Pay From</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedAccountId}
+            onValueChange={(itemValue) => setSelectedAccountId(itemValue)}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+          >
+            {payableAccounts.length === 0 ? (
+              <Picker.Item label="No accounts with a positive balance." value={undefined} />
+            ) : (
+              payableAccounts.map(account => (
+                <Picker.Item 
+                  key={account.id} 
+                  label={`${account.name} (${formatCurrency(account.balance)})`} 
+                  value={account.id} 
+                  color="#000000"
+                />
+              ))
             )}
-            
-            <Text style={styles.inputLabel}>Current Balance</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="e.g., 5000" 
-              placeholderTextColor="#999" 
-              keyboardType="numeric" 
-              value={balanceInput} 
-              onChangeText={setBalanceInput}
-            />
-            
-            <View style={styles.buttonRow}>
-              {isEditMode && (
-                <Pressable style={[styles.button, styles.buttonDelete]} onPress={handleDeleteAccount} >
-                  <Ionicons name="trash-outline" size={18} color="white" style={{ marginRight: 8 }} />
-                  <Text style={[styles.buttonText, styles.buttonAddText]}>Delete</Text>
-                </Pressable>
-              )}
-              <Pressable style={[styles.button, styles.buttonSubmit]} onPress={handleSubmit} >
-                <Ionicons name="checkmark" size={18} color="white" style={{ marginRight: 8 }} />
-                <Text style={[styles.buttonText, styles.buttonAddText]}>{isEditMode ? 'Update' : 'Add'}</Text>
-              </Pressable>
-            </View>
-            
-            <Pressable style={[styles.button, styles.buttonClose]} onPress={() => router.back()} >
-              <Ionicons name="close" size={18} color="#1F2937" style={{ marginRight: 8 }} />
-              <Text style={[styles.buttonText, styles.buttonCloseText]}>Cancel</Text>
-            </Pressable>
-          </Pressable>
+          </Picker>
         </View>
-      </KeyboardAvoidingView>
-    );
+
+        <Text style={styles.label}>Category</Text>
+        <View style={styles.categoryContainer}>
+          {CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[ styles.categoryButton, category === cat && styles.categoryButtonActive ]}
+              onPress={() => setCategory(cat)}
+            >
+              <Text style={[ styles.categoryText, category === cat && styles.categoryTextActive ]}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        
+        <Text style={styles.label}>Note (Optional)</Text>
+        <TextInput
+          style={[styles.input, styles.multilineInput]}
+          placeholder="e.g., Lunch with colleagues"
+          value={note}
+          onChangeText={setNote}
+          multiline
+        />
+        
+        <View style={styles.submitButton}>
+          <Button
+            title={isEditing ? 'Update Expense' : 'Add Expense'}
+            onPress={handleSubmit}
+            disabled={isEditing || !selectedAccountId}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
-// --- STYLES (Your styles from SaveApp Modal) ---
 const styles = StyleSheet.create({
-    modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0, 0, 0, 0.4)' },
-    modalView: { backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 },
-    modalTitle: { fontSize: 22, fontWeight: 'bold', color: 'black', marginBottom: 20, textAlign: 'center' },
-    inputLabel: { fontSize: 16, color: '#666', marginBottom: 8, marginTop: 10 },
-    pickerContainer: { backgroundColor: '#F0F2F5', borderRadius: 8, justifyContent: 'center' },
-    picker: { color: '#000000' },
-    pickerItem: { color: '#000000', fontSize: 16 }, // Item style for iOS
-    input: { backgroundColor: '#F0F2F5', borderRadius: 8, padding: 16, fontSize: 16, marginBottom: 16, color: 'black' },
-    buttonRow: { flexDirection: 'row', marginBottom: 10 },
-    button: { borderRadius: 8, padding: 16, flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
-    buttonClose: { backgroundColor: '#E5E7EB', marginTop: 10 },
-    buttonCloseText: { color: '#1F2937' },
-    buttonSubmit: { backgroundColor: '#007AFF', flex: 2, marginLeft: 10 },
-    buttonDelete: { backgroundColor: '#FF3B30', flex: 1.5, marginRight: 10 },
-    buttonAddText: { color: 'white' },
-    buttonText: { fontWeight: 'bold', fontSize: 16 },
+  container: { 
+    flex: 1, 
+    padding: 20,
+    backgroundColor: '#f9f9f9'
+  },
+  label: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    marginBottom: 8, 
+    color: '#333' 
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 20,
+    color: 'black',
+  },
+  multilineInput: { 
+    height: 100, 
+    textAlignVertical: 'top' 
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 20,
+  },
+  categoryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 20,
+  },
+  categoryButtonActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  categoryText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  categoryTextActive: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  submitButton: {
+    marginTop: 10,
+  },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 20,
+    justifyContent: 'center'
+  },
+  picker: {
+    color: '#000000',
+  },
+  pickerItem: {
+    color: '#000000',
+  }
 });

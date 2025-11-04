@@ -17,7 +17,7 @@ export default function RootLayout() {
         />
         <Stack.Screen 
           name="addAccountModal" 
-          options={{ presentation: 'modal', title: 'Add Account' }} 
+          options={{ presentation: 'modal', title: 'Add/Edit Account' }} 
         />
       </Stack>
     </AppProvider>

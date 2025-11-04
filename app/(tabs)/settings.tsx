@@ -1,8 +1,16 @@
-import { useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Alert, Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Alert, Button, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../../contexts/AppContext';
+
+// --- THIS IS THE FIX ---
+// Revert to using the namespace imports ('* as ...')
+// This is the correct way to import these libraries to avoid type errors.
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+// -----------------------
+
+import { useFocusEffect } from 'expo-router';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { CURRENCIES, getCurrencySymbol } from '../../utils/currency';
 
 export default function SettingsScreen() {
@@ -23,7 +31,34 @@ export default function SettingsScreen() {
     return { opacity: opacity.value, transform: [{ translateY: translateY.value }], flex: 1 };
   });
 
-  const exportToCSV = async () => { /* ... (same as before) ... */ };
+  const exportToCSV = async () => {
+    if (expenses.length === 0) {
+      Alert.alert("No Data", "There are no expenses to export.");
+      return;
+    }
+    const header = "ID,Date,Category,Amount,Note,AccountId\n";
+    const rows = expenses.map(exp => 
+      `${exp.id},${exp.date},${exp.category},${exp.amount},"${exp.note.replace(/"/g, '""')}",${exp.accountId}`
+    ).join("\n");
+    const csvString = header + rows;
+    
+    // --- THIS IS THE FIX ---
+    // Add the 'FileSystem.' and 'Sharing.' prefixes back
+    const fileUri = FileSystem.documentDirectory + 'expenses.csv';
+    try {
+      await FileSystem.writeAsStringAsync(fileUri, csvString, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'text/csv',
+        dialogTitle: 'Export Expenses',
+      });
+    // -----------------------
+    } catch (error) {
+      Alert.alert("Error", "Could not save or share the file.");
+    }
+  };
+
   const handleReset = () => {
     if (expenses.length === 0) {
       Alert.alert("No Expenses", "There are no expenses to reset.");
@@ -40,39 +75,48 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Animated.ScrollView style={[styles.container, animatedStyle]}>
-      <Text style={styles.header}>Settings</Text>
-      <Text style={styles.label}>Choose Currency</Text>
-      <View style={styles.currencyContainer}>
-        {CURRENCIES.map((c) => (
-          <TouchableOpacity
-            key={c}
-            style={[ styles.currencyButton, currency === c && styles.currencyButtonActive ]}
-            onPress={() => setCurrency(c)}
-          >
-            <Text style={[ styles.currencyText, currency === c && styles.currencyTextActive ]}>
-              {c} ({getCurrencySymbol(c)})
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.label}>Export Data</Text>
-        <Button title="Export Current Expenses to CSV" onPress={exportToCSV} />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <Animated.ScrollView 
+        style={animatedStyle}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        <Text style={styles.header}>Settings</Text>
+        <Text style={styles.label}>Choose Currency</Text>
+        <View style={styles.currencyContainer}>
+          {CURRENCIES.map((c) => (
+            <TouchableOpacity
+              key={c}
+              style={[ styles.currencyButton, currency === c && styles.currencyButtonActive ]}
+              onPress={() => setCurrency(c)}
+            >
+              <Text style={[ styles.currencyText, currency === c && styles.currencyTextActive ]}>
+                {c} ({getCurrencySymbol(c)})
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.label}>Export Data</Text>
+          <Button title="Export Current Expenses to CSV" onPress={exportToCSV} />
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.label}>Danger Zone</Text>
-        <Button title="Reset Current Period" color="#DC3545" onPress={handleReset} />
-      </View>
-    </Animated.ScrollView>
+        <View style={styles.section}>
+          <Text style={styles.label}>Danger Zone</Text>
+          <Button title="Reset Current Period" color="#DC3545" onPress={handleReset} />
+        </View>
+      </Animated.ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  header: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, marginTop: 10, },
   label: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
   currencyContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   currencyButton: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8 },

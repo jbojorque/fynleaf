@@ -8,6 +8,7 @@ export default function TabLayout() {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: React.ComponentProps<typeof Ionicons>['name'];
+
           if (route.name === 'index') {
             iconName = focused ? 'wallet' : 'wallet-outline';
           } else if (route.name === 'expenses') {
@@ -23,6 +24,8 @@ export default function TabLayout() {
         },
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
+        // Hide the header for all tabs
+        headerShown: false, 
       })}
     >
       <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
