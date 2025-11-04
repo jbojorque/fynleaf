@@ -1,13 +1,14 @@
 import React, { useCallback } from 'react';
 import { Alert, Button, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-// --- THIS IS THE FIX ---
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// -----------------------
-import * as FileSystem from 'expo-file-system';
-import { useFocusEffect } from 'expo-router';
-import * as Sharing from 'expo-sharing';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useAppContext } from '../../contexts/AppContext';
+
+// These imports will work because of the global.d.ts file
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+
+import { useFocusEffect } from 'expo-router';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { CURRENCIES, getCurrencySymbol } from '../../utils/currency';
 
 export default function SettingsScreen() {
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  header: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, marginTop: 10, },
+  header: { fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
   label: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
   currencyContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   currencyButton: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8 },

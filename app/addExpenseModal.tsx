@@ -1,8 +1,7 @@
 import { Picker } from '@react-native-picker/picker';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert, Button, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../contexts/AppContext';
 import { getCurrencySymbol } from '../utils/currency';
 
@@ -10,9 +9,7 @@ const CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Other'];
 
 export default function AddExpenseModal() {
   const { addExpense, currency, formatCurrency, accounts } = useAppContext();
-  const params = useLocalSearchParams();
-  const expenseToEdit = undefined; // Editing is not supported in this example
-  const isEditing = !!expenseToEdit;
+  const isEditing = false; // Editing is not supported in this example
 
   const payableAccounts = accounts.filter(acc => acc.balance > 0);
 

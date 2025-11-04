@@ -24,7 +24,7 @@ export default function TabLayout() {
         },
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
-        // Hide the header for all tabs
+        // This is correct! We want to hide the default header.
         headerShown: false, 
       })}
     >

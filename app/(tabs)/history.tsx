@@ -1,10 +1,8 @@
+import { useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
 import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-// --- THIS IS THE FIX ---
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// -----------------------
-import { useFocusEffect } from 'expo-router';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../contexts/AppContext';
 import { HistoryItem } from '../../navigation/types';
 

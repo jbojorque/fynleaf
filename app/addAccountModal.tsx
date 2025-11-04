@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -6,7 +5,11 @@ import {
   Alert, KeyboardAvoidingView, Platform, Pressable,
   StyleSheet, Text, TextInput, View
 } from 'react-native';
+// --- THIS IS THE FIX ---
+// Import SafeAreaView from 'react-native-safe-area-context'
 import { SafeAreaView } from 'react-native-safe-area-context';
+// -----------------------
+import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '../contexts/AppContext';
 
 const ACCOUNT_TYPES = [ 'BDO Unibank', 'BPI', 'Metrobank', 'GCash', 'Maya', 'CASH', 'CIMB', 'Maribank', 'UNO', 'GoTyme', 'Land Bank', 'Security Bank', 'RCBC', 'PNB', 'China Bank', 'UnionBank', 'EastWest Bank', 'CREDIT CARD', 'Asia United Bank', 'Paypal', 'Wise', 'Other', ];

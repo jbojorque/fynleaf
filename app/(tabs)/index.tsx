@@ -1,13 +1,15 @@
-import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import {
     ActivityIndicator, FlatList, Pressable, StatusBar,
     StyleSheet, Text, View,
 } from 'react-native';
+// --- THIS IS THE FIX ---
+import { SafeAreaView } from 'react-native-safe-area-context';
+// -----------------------
+import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { PieChart } from "react-native-gifted-charts";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../contexts/AppContext';
 import { PieSliceData } from '../../navigation/types';
 
@@ -15,7 +17,6 @@ const CARD_COLORS = [ '#007AFF', '#5856D6', '#34C759', '#FF9500', '#FF3B30', '#0
 const getIconForAccount = (name: string, size: number, color: string) => { const lowerName = name.toLowerCase(); if (lowerName.includes('bank') || lowerName.includes('bdo') || lowerName.includes('bpi')) { return <FontAwesome name="bank" size={size} color={color} />; } if (lowerName.includes('cash') && !lowerName.includes('gcash')) { return <FontAwesome name="money" size={size} color={color} />; } if (lowerName.includes('card')) { return <FontAwesome name="credit-card-alt" size={size} color={color} />; } if (lowerName.includes('gcash') || lowerName.includes('maya')) { return <Ionicons name="phone-portrait-outline" size={size} color={color} />; } return <MaterialCommunityIcons name="wallet-outline" size={size} color={color} />; };
 
 export default function DashboardScreen() {
-    const { top } = useSafeAreaInsets();
     const { isLoading, accounts, formatCurrency } = useAppContext();
     const [focusedIndex, setFocusedIndex] = useState(-1);
 
@@ -30,9 +31,10 @@ export default function DashboardScreen() {
     }
 
     return (
-        <View style={styles.container}>
+        // --- THIS IS THE FIX ---
+        <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
-            <LinearGradient colors={['#ffffff', '#f0f2f5']} style={[styles.headerBackgroundGradient, { paddingTop: top }]} >
+            <LinearGradient colors={['#ffffff', '#f0f2f5']} style={styles.headerBackgroundGradient} >
                 <View style={styles.header}>
                     <View style={styles.headerTitleRow}>
                         <MaterialCommunityIcons name="wallet-outline" size={18} color="#8A9BBE" style={{ marginRight: 6 }} />
@@ -93,7 +95,7 @@ export default function DashboardScreen() {
               </Pressable>
             </Link>
             
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -103,6 +105,7 @@ const styles = StyleSheet.create({
     center: { justifyContent: 'center', alignItems: 'center', flex: 1 },
     loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
     headerBackgroundGradient: { borderBottomLeftRadius: 30, borderBottomRightRadius: 30, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3, marginBottom: 8 },
+    // Removed paddingTop from here
     header: { paddingBottom: 12, paddingHorizontal: 24, backgroundColor: 'transparent' },
     headerTitleRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingTop: 10 },
     headerTitle: { fontSize: 18, color: '#8A9BBE', fontWeight: '600' },
