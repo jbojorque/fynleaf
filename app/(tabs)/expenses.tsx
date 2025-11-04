@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Alert, FlatList, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Pressable, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../contexts/AppContext';
 import { Expense } from '../../navigation/types';
 
 export default function ExpenseListScreen() {
+  const { top } = useSafeAreaInsets(); // Get top inset
   const { expenses, deleteExpense, isLoading, formatCurrency, accounts } = useAppContext();
   
   const getAccountName = (id: string) => {
@@ -70,9 +72,10 @@ export default function ExpenseListScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <Animated.View style={animatedStyle}>
-        <Text style={styles.header}>My Expenses</Text>
+        <Text style={[styles.header, { paddingTop: top }]}>My Expenses</Text>
         {expenses.length === 0 ? (
           <Text style={styles.emptyText}>No expenses yet. Add one!</Text>
         ) : (
@@ -89,7 +92,7 @@ export default function ExpenseListScreen() {
           </Pressable>
         </Link>
       </Animated.View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -99,10 +102,9 @@ const styles = StyleSheet.create({
     fontSize: 28, 
     fontWeight: 'bold', 
     marginBottom: 10,
-    marginTop: 10,
     paddingHorizontal: 20,
   },
-  itemContainer: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  itemContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#eee' },
   itemInfo: { flex: 1 },
   itemCategory: { fontSize: 16, fontWeight: 'bold' },
   itemNote: { fontSize: 14, color: '#666' },

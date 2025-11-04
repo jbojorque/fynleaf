@@ -1,11 +1,15 @@
-import { useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
-import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// --- THIS IS THE FIX ---
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// -----------------------
+import { useFocusEffect } from 'expo-router';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useAppContext } from '../../contexts/AppContext';
 import { HistoryItem } from '../../navigation/types';
 
 export default function HistoryScreen() {
+  const { top } = useSafeAreaInsets();
   const { history, formatCurrency } = useAppContext();
 
   const opacity = useSharedValue(0);
@@ -40,9 +44,10 @@ export default function HistoryScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <Animated.View style={animatedStyle}>
-        <Text style={styles.header}>History</Text>
+        <Text style={[styles.header, { paddingTop: top }]}>History</Text>
         {history.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No history yet.</Text>
@@ -59,7 +64,7 @@ export default function HistoryScreen() {
           />
         )}
       </Animated.View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -69,7 +74,6 @@ const styles = StyleSheet.create({
     fontSize: 28, 
     fontWeight: 'bold', 
     marginBottom: 10,
-    marginTop: 10,
     paddingHorizontal: 20,
   },
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30, marginTop: -50 },

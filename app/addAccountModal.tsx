@@ -3,9 +3,10 @@ import { Picker } from '@react-native-picker/picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert, KeyboardAvoidingView, Platform, Pressable,
-    StyleSheet, Text, TextInput, View
+  Alert, KeyboardAvoidingView, Platform, Pressable,
+  StyleSheet, Text, TextInput, View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppContext } from '../contexts/AppContext';
 
 const ACCOUNT_TYPES = [ 'BDO Unibank', 'BPI', 'Metrobank', 'GCash', 'Maya', 'CASH', 'CIMB', 'Maribank', 'UNO', 'GoTyme', 'Land Bank', 'Security Bank', 'RCBC', 'PNB', 'China Bank', 'UnionBank', 'EastWest Bank', 'CREDIT CARD', 'Asia United Bank', 'Paypal', 'Wise', 'Other', ];
@@ -60,7 +61,7 @@ export default function AddAccountModal() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <Pressable style={StyleSheet.absoluteFill} onPress={() => router.back()} />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardView}>
         <View style={styles.modalView} >
@@ -101,19 +102,18 @@ export default function AddAccountModal() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'flex-end' },
+  container: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'transparent' },
   keyboardView: { width: '100%' },
   modalView: { 
     backgroundColor: 'white', 
     borderTopLeftRadius: 20, 
     borderTopRightRadius: 20, 
     padding: 24, 
-    paddingBottom: 40, 
     shadowColor: '#000', 
     shadowOpacity: 0.25, 
     shadowRadius: 4, 

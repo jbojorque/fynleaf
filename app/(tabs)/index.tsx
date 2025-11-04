@@ -3,10 +3,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, FlatList, Pressable, SafeAreaView, StatusBar,
-  StyleSheet, Text, View,
+    ActivityIndicator, FlatList, Pressable, StatusBar,
+    StyleSheet, Text, View,
 } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../contexts/AppContext';
 import { PieSliceData } from '../../navigation/types';
 
@@ -14,6 +15,7 @@ const CARD_COLORS = [ '#007AFF', '#5856D6', '#34C759', '#FF9500', '#FF3B30', '#0
 const getIconForAccount = (name: string, size: number, color: string) => { const lowerName = name.toLowerCase(); if (lowerName.includes('bank') || lowerName.includes('bdo') || lowerName.includes('bpi')) { return <FontAwesome name="bank" size={size} color={color} />; } if (lowerName.includes('cash') && !lowerName.includes('gcash')) { return <FontAwesome name="money" size={size} color={color} />; } if (lowerName.includes('card')) { return <FontAwesome name="credit-card-alt" size={size} color={color} />; } if (lowerName.includes('gcash') || lowerName.includes('maya')) { return <Ionicons name="phone-portrait-outline" size={size} color={color} />; } return <MaterialCommunityIcons name="wallet-outline" size={size} color={color} />; };
 
 export default function DashboardScreen() {
+    const { top } = useSafeAreaInsets();
     const { isLoading, accounts, formatCurrency } = useAppContext();
     const [focusedIndex, setFocusedIndex] = useState(-1);
 
@@ -28,9 +30,9 @@ export default function DashboardScreen() {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
-            <LinearGradient colors={['#ffffff', '#f0f2f5']} style={styles.headerBackgroundGradient} >
+            <LinearGradient colors={['#ffffff', '#f0f2f5']} style={[styles.headerBackgroundGradient, { paddingTop: top }]} >
                 <View style={styles.header}>
                     <View style={styles.headerTitleRow}>
                         <MaterialCommunityIcons name="wallet-outline" size={18} color="#8A9BBE" style={{ marginRight: 6 }} />
@@ -85,13 +87,13 @@ export default function DashboardScreen() {
                  }
             />
 
-            <Link href={{ pathname: "/addAccountModal", params: { accountId: undefined } }} asChild>
+            <Link href={{ pathname: "/addAccountModal" }} asChild>
               <Pressable style={styles.fab}>
                   <Ionicons name="add" size={30} color="white" />
               </Pressable>
             </Link>
             
-        </SafeAreaView>
+        </View>
     );
 }
 

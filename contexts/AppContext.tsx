@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Account, AppContextType, Expense, HistoryItem } from '../navigation/types';
-import { Currency } from '../utils/currency';
+import { Currency, getCurrencySymbol } from '../utils/currency';
 
 const APP_DATA_KEY = '@FinanceAppStore_v1';
 
@@ -116,7 +116,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   
   const formatCurrency = (amount: number, showSymbol = true, useDecimals = true) => {
     const code = currency || 'PHP';
-    // Use 'en-PH' for PHP formatting, or 'en-US' as a fallback
     const locale = (code === 'PHP') ? 'en-PH' : 'en-US';
     
     try {
@@ -130,7 +129,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (showSymbol) {
         return formatter.format(amount);
       } else {
-        // Fallback for non-symbol currency formatting
         return new Intl.NumberFormat(locale, {
           style: 'decimal',
           minimumFractionDigits: useDecimals ? 2 : 0,
@@ -139,10 +137,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (e) {
       // Fallback if currency code is not supported
-      return `${code} ${amount.toFixed(2)}`;
+      return `${showSymbol ? getCurrencySymbol(code) : ''} ${amount.toFixed(2)}`;
     }
   };
-
 
   return (
     <AppContext.Provider

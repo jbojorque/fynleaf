@@ -1,19 +1,17 @@
 import React, { useCallback } from 'react';
-import { Alert, Button, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '../../contexts/AppContext';
-
+import { Alert, Button, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // --- THIS IS THE FIX ---
-// Revert to using the namespace imports ('* as ...')
-// This is the correct way to import these libraries to avoid type errors.
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // -----------------------
-
+import * as FileSystem from 'expo-file-system';
 import { useFocusEffect } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useAppContext } from '../../contexts/AppContext';
 import { CURRENCIES, getCurrencySymbol } from '../../utils/currency';
 
 export default function SettingsScreen() {
+  const { top } = useSafeAreaInsets();
   const { expenses, currency, setCurrency, resetExpenses } = useAppContext();
 
   const opacity = useSharedValue(0);
@@ -42,9 +40,7 @@ export default function SettingsScreen() {
     ).join("\n");
     const csvString = header + rows;
     
-    // --- THIS IS THE FIX ---
-    // Add the 'FileSystem.' and 'Sharing.' prefixes back
-    const fileUri = FileSystem.documentDirectory + 'expenses.csv';
+    const fileUri = (FileSystem.documentDirectory || '') + 'expenses.csv';
     try {
       await FileSystem.writeAsStringAsync(fileUri, csvString, {
         encoding: FileSystem.EncodingType.UTF8,
@@ -53,7 +49,6 @@ export default function SettingsScreen() {
         mimeType: 'text/csv',
         dialogTitle: 'Export Expenses',
       });
-    // -----------------------
     } catch (error) {
       Alert.alert("Error", "Could not save or share the file.");
     }
@@ -75,10 +70,11 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <Animated.ScrollView 
         style={animatedStyle}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[styles.scrollContainer, { paddingTop: top }]}
       >
         <Text style={styles.header}>Settings</Text>
         <Text style={styles.label}>Choose Currency</Text>
@@ -106,7 +102,7 @@ export default function SettingsScreen() {
           <Button title="Reset Current Period" color="#DC3545" onPress={handleReset} />
         </View>
       </Animated.ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
